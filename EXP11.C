@@ -1,6 +1,6 @@
 //EMMBEDDED SYSTEM: ECA1407
-//M.Rohith
-//192311184
+//M.Lokesh
+//192311134
 #include <reg51.h>
 sbit LED1 = P1^0;
 sbit LED2 = P1^1;
