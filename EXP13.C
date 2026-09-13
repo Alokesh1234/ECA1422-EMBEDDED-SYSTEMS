@@ -1,6 +1,6 @@
 //ECA1407-EMBEDDED SYSTEM
-//M.Rohith
-//192311184
+//A.Lokesh
+//192311134
 #include <reg51.h>
 
 void main(void)
