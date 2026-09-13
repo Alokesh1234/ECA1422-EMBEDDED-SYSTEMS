@@ -1,6 +1,6 @@
 //EMBEDDED SYSTEMS-ECA1407
-//M.Rohith
-//192311184
+//A.Lokesh
+//192311134
 #include <reg51.h>
 #include <stdio.h>
 void serial_ISR(void) interrupt 4
