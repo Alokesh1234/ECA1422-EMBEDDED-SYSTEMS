@@ -1,5 +1,5 @@
 //EMMBEDDED SYSTEM: ECA1407
-//M.Lokesh
+//A.Lokesh
 //192311134
 #include <reg51.h>
 sbit LED1 = P1^0;
