@@ -1,0 +1,117 @@
+#include <systemc.h>
+#include <tlm.h>
+#include <tlm_utils/simple_initiator_socket.h>
+#include <tlm_utils/simple_target_socket.h>
+
+using namespace sc_core;
+using namespace tlm;
+
+//--------------------------------------------------
+// Target
+//--------------------------------------------------
+SC_MODULE(Target)
+{
+    tlm_utils::simple_target_socket<Target> socket;
+
+    SC_CTOR(Target)
+    {
+        socket.register_b_transport(this, &Target::b_transport);
+    }
+
+    void b_transport(tlm_generic_payload &trans, sc_time &delay)
+    {
+        int *data = (int *)trans.get_data_ptr();
+
+        std::cout << "Target received : "
+                  << *data
+                  << " at "
+                  << sc_time_stamp()
+                  << std::endl;
+
+        delay += sc_time(10, SC_NS);
+
+        trans.set_response_status(TLM_OK_RESPONSE);
+    }
+};
+
+//--------------------------------------------------
+// Initiator
+//--------------------------------------------------
+SC_MODULE(Initiator)
+{
+    tlm_utils::simple_initiator_socket<Initiator> socket;
+
+    SC_CTOR(Initiator)
+    {
+        SC_THREAD(process);
+    }
+
+    void process()
+    {
+        tlm_generic_payload trans;
+        sc_time delay = SC_ZERO_TIME;
+
+        int data = 555;
+
+        trans.set_command(TLM_WRITE_COMMAND);
+        trans.set_address(0);
+        trans.set_data_ptr((unsigned char *)&data);
+        trans.set_data_length(sizeof(data));
+        trans.set_streaming_width(sizeof(data));
+        trans.set_byte_enable_ptr(nullptr);
+        trans.set_dmi_allowed(false);
+        trans.set_response_status(TLM_INCOMPLETE_RESPONSE);
+
+        std::cout << "Initiator sending : "
+                  << data
+                  << " at "
+                  << sc_time_stamp()
+                  << std::endl;
+
+        socket->b_transport(trans, delay);
+
+        wait(delay);
+
+        if (trans.is_response_ok())
+        {
+            std::cout << "Transaction completed successfully at "
+                      << sc_time_stamp()
+                      << std::endl;
+        }
+        else
+        {
+            std::cout << "Transaction failed"
+                      << std::endl;
+        }
+
+        sc_stop();
+    }
+};
+
+//--------------------------------------------------
+// Top Module
+//--------------------------------------------------
+SC_MODULE(Top)
+{
+    Initiator initiator;
+    Target target;
+
+    SC_CTOR(Top)
+        : initiator("initiator"),
+          target("target")
+    {
+        initiator.socket.bind(target.socket);
+    }
+};
+
+//--------------------------------------------------
+// Main
+//--------------------------------------------------
+int sc_main(int argc, char* argv[])
+{
+    Top top("top");
+
+    sc_start();
+
+    return 0;
+}
